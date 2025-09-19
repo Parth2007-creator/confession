@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>For My Pookie ❤️</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+    body { 
+      margin: 0; 
+      font-family: 'Poppins', sans-serif; 
+      background: #fdf6f9; 
+      overflow: hidden; 
+    }
+    .center { 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh; 
+      flex-direction: column; 
+      position: relative;
+    }
+
+    /* Floating hearts & butterflies on first page and letter paragraphs */
+    .floating-icon {
+      position: absolute;
+      font-size: 24px;
+      user-select: none;
+      pointer-events: none;
+      animation: floatUp linear forwards;
+      opacity: 0.8;
+      z-index: 9999;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-150px) scale(1.3);
+        opacity: 0;
+      }
+    }
+
+    /* Envelope styling */
+    .envelope { 
+      width: 200px; 
+      height: 120px; 
+      background: #ffccd5; 
+      position: relative; 
+      cursor: pointer; 
+      border-radius: 5px; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    .envelope:before, .envelope:after { 
+      content: ''; 
+      position: absolute; 
+      border-style: solid; 
+      border-width: 60px 100px; 
+      border-color: transparent transparent #ffb3c1 transparent; 
+      top: -60px; 
+      left: 0; 
+    }
+    #envelopePage p {
+      font-size: 1.2rem;
+      color: #d1536f;
+      font-weight: 600;
+      text-shadow: 0 0 3px #ffa6b7;
+    }
+
+    /* Letter + Slideshow Page */
+    #letterSlideshow {
+      display: none;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* Background slideshow */
+    .slideshow {
+      position: fixed; 
+      top:0; 
+      left:0; 
+      width:100%; 
+      height:100%; 
+      z-index:1; 
+      overflow: hidden;
+    }
+    .slide { 
+      display: none; 
+      height: 100%; 
+      width: 100%; 
+      background-size: cover; 
+      background-position: center; 
+      position:absolute; 
+      top:0; 
+      left:0; 
+      transition: opacity 1s ease-in-out;
+    }
+    .slide.active {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Progress bar container */
+    .progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: #ffe6ec;
+      z-index: 2;
+    }
+    .progress-bar {
+      height: 5px;
+      width: 0%;
+      background: linear-gradient(90deg, #ff5c8d, #ff99b8);
+      transition: width 3s linear;
+      border-radius: 0 3px 3px 0;
+    }
+
+    /* Letter styling */
+    .center.letter-container {
+      position: relative; 
+      z-index: 2; 
+      height: 100vh;
+      overflow: hidden;
+      padding: 30px 10px;
+    }
+    .letterPage {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      max-width: 600px;
+      max-height: 80vh; /* limit height */
+      background: rgba(255,255,255,0.85);
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      cursor: default;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #ff5c8d #ffe6ec;
+      margin: auto;
+    }
+
+    /* Custom scrollbar for WebKit */
+    .letterPage::-webkit-scrollbar {
+      width: 6px;
+    }
+    .letterPage::-webkit-scrollbar-track {
+      background: #ffe6ec;
+      border-radius: 10px;
+    }
+    .letterPage::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, #ff5c8d, #ff99b8);
+      border-radius: 10px;
+    }
+
+    /* Paragraph styling with fade & slide up */
+    .para {
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 1s ease, transform 1s ease;
+      margin-bottom: 1em;
+      font-size: 1.1rem;
+      line-height: 1.4;
+      color: #610018;
+      font-weight: 500;
+      position: relative;
+    }
+
+    .para.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Emoji spans inside paragraphs */
+    .para span.emoji {
+      margin: 0 4px;
+      font-size: 1.3rem;
+      user-select: none;
+    }
+
+    /* Hide iframe */
+    iframe { 
+      position:absolute; 
+      top:-200%; 
+      left:-200%; 
+      width:1px; 
+      height:1px; 
+      border:0; 
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Envelope Page -->
+  <div class="center" id="envelopePage">
+    <div class="envelope" onclick="openLetter()"></div>
+    <p>Click the envelope 💌</p>
+  </div>
+
+  <!-- Letter + Slideshow Page -->
+  <div id="letterSlideshow">
+    <!-- Progress bar -->
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Background slideshow -->
+    <div class="slideshow">
+      <div class="slide" style="background-image:url('https://drive.google.com/uc?id=1SStRTsq3uJQTyavgI2r-vokYWpOa-lE_');"></div>
+      <div class="slide" style="background-image:url('https://drive.google.com/uc?id=1EsA4uau5UgJ__EYj4VH6G87DXIP5vwYc');"></div>
+      <div class="slide" style="background-image:url('https://drive.google.com/uc?id=1xo2uCheUcCQB5n0_6eHz7HmsGwN64E1i');"></div>
+      <div class="slide" style="background-image:url('https://drive.google.com/uc?id=1GeQmmXrXfubicMGJk3vnQb_my5flNNmn');"></div>
+      <div class="slide" style="background-image:url('https://drive.google.com/uc?id=1la-DJzwfGavuGT2elJpIYFvd0lm1GaJu');"></div>
+      <div class="slide" style="background-image:url('https://drive.google.com/uc?id=1tZdQxrpCpBhlESjqvXtUFMf2ai0Po5AZ');"></div>
+    </div>
+
+    <!-- Hidden autoplay YouTube song (Kaise Hua) -->
+    <iframe src="https://www.youtube.com/embed/3zq-XX9J6n8?autoplay=1&loop=1&playlist=3zq-XX9J6n8" allow="autoplay"></iframe>
+
+    <!-- Letter in front -->
+    <div class="center letter-container">
+      <div class="letterPage" id="letterPage">
+        <h2>My Dearest <span class="emoji">❤️</span></h2>
+
+        <p class="para">
+          Heyy dudeee... Ikk ha shock <span class="emoji">❤️</span> asnare tuzhysthiii but i triedd to keep it a secret but I can't anymore if you're reading this there's high possibility ki mi hi risk gheun tula phtvly but if phtvly tr mla bolychy purna.
+        </p>
+        <p class="para">
+          See first of all i respect our bond <span class="emoji"></span> i love our bondd soooo muchhhhhhhhh that I don't want to lose itt anddd te kdhi honar pnn nhii <span class="emoji">😭😭</span>
+        </p>
+        <p class="para">
+          Idkk bhai ksa boltattt or ksa boluuu buttt I LOVEE YOUUU DUDEEEEE !!<span class="emoji">❤️❤️❤️</span><span class="emoji">🫶🏻</span>. YEAH YEAHH I DOOO don't be shockedddd bhaiii how can't I you're just perfect tuu perfectly mla handel krtesss <span class="emoji">😭</span>( thank youu for thattt )
+        </p>
+        <p class="para">
+          I just lovee talking too youuu tuzhyshi boltanaa idk khi tri veglichhh feeling yetee and i lovee that feeling tuu svatach khi share krtess or even stories vegare taktana mla vichartess i love itt <span class="emoji">❤️</span> starting la i thought maybe jsta boltoy so attraction asell but nhi bee it's not attraction ikkk it's not at all attraction.
+        </p>
+        <p class="para">
+          Mla vatlela mi kdhi tula sngnarch nhi but jar tu he vachteys trr mi tula adhich sngitla asel ikk you'll be hating me rnn but pleasee i beg you don't break that bond it's soo god damn precious to me <span class="emoji">🙃</span>.
+        </p>
+        <p class="para">
+          I thought of it ki bhai religion ch issue ahe etc. Etc but yrr life pn tr ekch ahe thodi apn prt prateyk life mdhee bhetnarot (i hope bhetu but still) sooo maybe mi risk ghetli asel he sgla tula sngaichii i justt lovee youuu !!! ❤️❤️ <span class="emoji"></span>
+        </p>
+        <p class="para">
+          I just love the way you treat mee i just love the way too  handelll myy problemss i just love thee wayyy youu comfortt meee i loveee every freaking thingg aboutt youuu <span class="emoji">❤️❤️🫶🏻</span>.
+        </p>
+        <p class="para">
+          Actually jar ata mi vichar krtoy tr from the moment you came into my life youu made it betterr 
+        </p>
+        <p class="para">
+          Mla khihi zla khihi prob asla ki mi tula yeun sngto geniunely tu mzhi life better keliys dudeeee i'm always thankfull to youu !!<span class="emoji">❤️❤️</span>
+        </p>
+        <p class="para">
+          Bhai i swear mla tuzhysarkhi frnd kdhich nhi bhetnar you're so precious too mee miii khup vela tuzhy lows mdhee nhvto but tuu nehmi hotiss i really appreciate that ikk mi he sgla bolun tuzhyvr stress takla asell I'm really sryy for thattt but life time regret mdhe nhvta jagaich tula na sngaich or else tevha vatel ki maybe if mi bolo asto trr khi tri zla asta atleast date tri kela astee <span class="emoji">🙃</span>.
+        </p>
+        <p class="para">
+          Sryy if I'm making things complicateddd but yeahh
+        </p>
+        <p class="para">
+          I TRULY LOVEE YOUU AND ALWAYS WILL !!<span class="emoji">❤️❤️🫶🏻✨✨</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const envelopePage = document.getElementById('envelopePage');
+    const letterSlideshow = document.getElementById('letterSlideshow');
+    const paragraphs = document.querySelectorAll('.para');
+    const icons = ['❤️','🦋','💖','🧡','💜','💗','🦄']; // cute emojis for floating icons
+
+    // Create floating icon at x,y coordinates relative to container
+    function createFloatingIcon(x, y, container) {
+      const icon = document.createElement('div');
+      icon.classList.add('floating-icon');
+      icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+      // Position relative to container
+      const rect = container.getBoundingClientRect();
+      icon.style.left = (x - rect.left) + 'px';
+      icon.style.top = (y - rect.top) + 'px';
+      icon.style.fontSize = (15 + Math.random() * 15) + 'px';
+      icon.style.animationDuration = (3 + Math.random() * 3) + 's';
+      container.appendChild(icon);
+
+      // Remove icon after animation
+      icon.addEventListener('animationend', () => {
+        icon.remove();
+      });
+    }
+
+    // Floating icons continuously on envelope page
+    function createRandomFloatingIconEnvelope() {
+      const icon = document.createElement('div');
+      icon.classList.add('floating-icon');
+      icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+      icon.style.left = (Math.random() * 90 + 5) + 'vw';
+      icon.style.top = (100 + Math.random() * 20) + 'vh';
+      icon.style.fontSize = (15 + Math.random() * 15) + 'px';
+      icon.style.animationDuration = (4 + Math.random() * 3) + 's';
+      envelopePage.appendChild(icon);
+
+      setTimeout(() => {
+        icon.remove();
+        setTimeout(createRandomFloatingIconEnvelope, Math.random() * 1500);
+      }, (parseFloat(icon.style.animationDuration) * 1000));
+    }
+
+    // Start multiple floating icons on envelope page
+    for(let i=0; i<10; i++){
+      setTimeout(createRandomFloatingIconEnvelope, i * 400);
+    }
+
+    function openLetter() {
+      envelopePage.style.display = 'none';
+      letterSlideshow.style.display = 'block';
+      showSlides();
+      showParagraphs();
+      startProgressBar();
+      // Add click listeners to paragraphs for floating icons
+      paragraphs.forEach(para => {
+        para.addEventListener('click', e => {
+          const rect = para.getBoundingClientRect();
+          // Create several floating icons near click position inside the paragraph
+          for(let i=0; i<7; i++) {
+            // random offsets within para
+            const offsetX = e.clientX + (Math.random()*60 - 30);
+            const offsetY = e.clientY + (Math.random()*60 - 30);
+            createFloatingIcon(offsetX, offsetY, para);
+          }
+        });
+      });
+    }
+
+    // Slideshow logic
+    let slideIndex = 0;
+    const slides = document.getElementsByClassName("slide");
+    function showSlides() {
+      for (let i = 0; i < slides.length; i++) slides[i].classList.remove('active');
+      slideIndex++;
+      if (slideIndex > slides.length) slideIndex = 1;
+      slides[slideIndex-1].classList.add('active');
+      setTimeout(showSlides, 3000);
+    }
+
+    // Paragraph fade-in logic
+    let paraIndex = 0;
+    function showParagraphs() {
+      if (paraIndex < paragraphs.length) {
+        paragraphs[paraIndex].classList.add('visible');
+        paraIndex++;
+        setTimeout(showParagraphs, 4500);
+      }
+    }
+
+    // Progress bar animation synced with slideshow
+    const progressBar = document.getElementById('progressBar');
+    function startProgressBar() {
+      progressBar.style.transition = 'none';
+      progressBar.style.width = '0%';
+      setTimeout(() => {
+        progressBar.style.transition = 'width 3s linear';
+        progressBar.style.width = '100%';
+      }, 100);
+      setInterval(() => {
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '0%';
+        setTimeout(() => {
+          progressBar.style.transition = 'width 3s linear';
+          progressBar.style.width = '100%';
+        }, 100);
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html>
