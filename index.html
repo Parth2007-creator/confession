@@ -1,40 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Smart Locker</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-  <!-- QR Scanner -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <style>
-    body {
-      text-align: center;
-      font-family: Arial;
-    }
-    button {
-      padding: 15px;
-      margin: 10px;
-      font-size: 18px;
-    }
-  </style>
-</head>
-
-<body>
-
-<h2>Smart Locker</h2>
-
-<button onclick="startSubmit()">Submit</button>
-<button onclick="startRetrieve()">Retrieve</button>
-
-<div id="reader" style="width:300px; margin:auto;"></div>
-
 <script>
 
-// 🔥 REPLACE THIS WITH YOUR FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
   databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
@@ -44,7 +9,7 @@ firebase.initializeApp(firebaseConfig);
 
 let mode = "";
 
-// ---------------- BUTTONS ----------------
+// -------- BUTTONS --------
 function startSubmit() {
   mode = "submit";
   startScanner();
@@ -55,57 +20,46 @@ function startRetrieve() {
   startScanner();
 }
 
-// ---------------- SCANNER ----------------
+// -------- SCANNER --------
 function startScanner() {
 
   const scanner = new Html5Qrcode("reader");
 
   scanner.start(
     { facingMode: "environment" },
-    { fps: 10 },
+    { fps: 10, qrbox: 250 },
     (text) => {
 
-      let data = text.split("|");
+      let prn = text.trim(); // 👈 QR gives PRN
 
-      let name = data[0];
-      let prn = data[1];
-      let branch = data[2];
-
-      alert("Welcome " + name);
+      alert("PRN: " + prn);
 
       scanner.stop();
 
-      if (mode === "submit") {
-        submitFlow(name, prn);
-      } else {
-        retrieveFlow(name, prn);
-      }
+      if (mode === "submit") submitFlow(prn);
+      else retrieveFlow(prn);
     }
   );
 }
 
-// ---------------- SUBMIT ----------------
-function submitFlow(name, prn) {
+// -------- SUBMIT --------
+function submitFlow(prn) {
 
-  // 🔥 SEND COMMAND TO ESP
   firebase.database().ref("commands").set({
     action: "open"
   });
 
-  alert("Locker Opened for " + name);
+  alert("Locker opened for PRN: " + prn);
 }
 
-// ---------------- RETRIEVE ----------------
-function retrieveFlow(name, prn) {
+// -------- RETRIEVE --------
+function retrieveFlow(prn) {
 
   firebase.database().ref("commands").set({
     action: "open"
   });
 
-  alert("Locker Opened for " + name);
+  alert("Locker opened for PRN: " + prn);
 }
 
 </script>
-
-</body>
-</html>
