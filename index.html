@@ -3,28 +3,9 @@
 <head>
   <title>Smart Locker</title>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-  <!-- QR Scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <style>
-    body {
-      text-align: center;
-      font-family: Arial;
-    }
-    button {
-      padding: 15px;
-      margin: 10px;
-      font-size: 18px;
-    }
-    #reader {
-      width: 300px;
-      margin: auto;
-    }
-  </style>
 </head>
 
 <body>
@@ -38,7 +19,6 @@
 
 <script>
 
-// 🔥 PUT YOUR FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
   databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
@@ -49,7 +29,6 @@ firebase.initializeApp(firebaseConfig);
 let mode = "";
 let scanner = null;
 
-// -------- BUTTONS --------
 function startSubmit() {
   mode = "submit";
   startScanner();
@@ -60,7 +39,6 @@ function startRetrieve() {
   startScanner();
 }
 
-// -------- SCANNER --------
 function startScanner() {
 
   if (scanner) {
@@ -79,13 +57,10 @@ function initScanner() {
 
   scanner.start(
     { facingMode: "environment" },
-    {
-      fps: 5,
-      qrbox: { width: 280, height: 280 }
-    },
+    { fps: 5, qrbox: 250 },
     (text) => {
 
-      let prn = text.replace(/\s/g, ""); // clean only
+      let prn = text.trim(); // ONLY THIS
 
       alert("PRN: " + prn);
 
@@ -93,20 +68,16 @@ function initScanner() {
 
       if (mode === "submit") submitFlow(prn);
       else retrieveFlow(prn);
-    },
-    (error) => {}
+    }
   );
 }
 
-// -------- SUBMIT --------
 function submitFlow(prn) {
 
-  // 🔥 ALWAYS SAVE (no checking)
   firebase.database().ref("locker").set({
     currentPRN: prn
   });
 
-  // 🔥 OPEN LOCKER
   firebase.database().ref("commands").set({
     action: "open"
   });
@@ -114,10 +85,8 @@ function submitFlow(prn) {
   alert("Saved & Opened");
 }
 
-// -------- RETRIEVE --------
 function retrieveFlow(prn) {
 
-  // 🔥 JUST OPEN (NO CHECK)
   firebase.database().ref("commands").set({
     action: "open"
   });
