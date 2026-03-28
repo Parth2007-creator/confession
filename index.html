@@ -38,7 +38,7 @@
 
 <script>
 
-// 🔥 REPLACE WITH YOUR FIREBASE CONFIG
+// 🔥 REPLACE WITH YOUR CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
   databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
@@ -60,7 +60,7 @@ function startRetrieve() {
   startScanner();
 }
 
-// -------- SCANNER --------
+// -------- START SCANNER --------
 function startScanner() {
 
   if (scanner) {
@@ -73,31 +73,38 @@ function startScanner() {
   }
 }
 
+// -------- INIT SCANNER --------
 function initScanner() {
 
   scanner = new Html5Qrcode("reader");
 
+  let lastScan = "";
+  let scanCount = 0;
+
   scanner.start(
     { facingMode: "environment" },
     {
-      fps: 10,
-      qrbox: { width: 250, height: 250 }
+      fps: 5,
+      qrbox: { width: 280, height: 280 }
     },
     (text) => {
 
-      let prn = text.trim();
+      // 🔥 CLEAN PRN
+      let prn = text.replace(/\s/g, "");
 
-      // 🔥 VALIDATION (only numbers)
-      if (!/^[0-9]+$/.test(prn)) {
-        alert("Invalid PRN ❌");
-        return;
+      // 🔥 DOUBLE READ CONFIRM
+      if (prn === lastScan) {
+        scanCount++;
+      } else {
+        lastScan = prn;
+        scanCount = 1;
       }
+
+      if (scanCount < 2) return;
 
       alert("PRN: " + prn);
 
-      scanner.stop().then(() => {
-        scanner.clear();
-      });
+      scanner.stop().then(() => scanner.clear());
 
       if (mode === "submit") submitFlow(prn);
       else retrieveFlow(prn);
@@ -106,10 +113,9 @@ function initScanner() {
   );
 }
 
-// -------- SUBMIT (STORE PRN) --------
+// -------- SUBMIT --------
 function submitFlow(prn) {
 
-  // Check if locker already occupied
   firebase.database().ref("locker/currentPRN").once("value")
     .then((snapshot) => {
 
@@ -118,12 +124,12 @@ function submitFlow(prn) {
         return;
       }
 
-      // Store PRN
+      // store PRN
       firebase.database().ref("locker").set({
         currentPRN: prn
       });
 
-      // Open locker
+      // open locker
       firebase.database().ref("commands").set({
         action: "open"
       });
@@ -132,7 +138,7 @@ function submitFlow(prn) {
     });
 }
 
-// -------- RETRIEVE (VERIFY PRN) --------
+// -------- RETRIEVE --------
 function retrieveFlow(prn) {
 
   firebase.database().ref("locker/currentPRN").once("value")
@@ -142,12 +148,11 @@ function retrieveFlow(prn) {
 
       if (storedPRN === prn) {
 
-        // Open locker
         firebase.database().ref("commands").set({
           action: "open"
         });
 
-        // Reset locker
+        // reset
         firebase.database().ref("locker").set({
           currentPRN: "none"
         });
