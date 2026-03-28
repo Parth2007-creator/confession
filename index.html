@@ -38,7 +38,7 @@
 
 <script>
 
-// 🔥 REPLACE WITH YOUR CONFIG
+// 🔥 PUT YOUR FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
   databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
@@ -60,7 +60,7 @@ function startRetrieve() {
   startScanner();
 }
 
-// -------- START SCANNER --------
+// -------- SCANNER --------
 function startScanner() {
 
   if (scanner) {
@@ -73,13 +73,9 @@ function startScanner() {
   }
 }
 
-// -------- INIT SCANNER --------
 function initScanner() {
 
   scanner = new Html5Qrcode("reader");
-
-  let lastScan = "";
-  let scanCount = 0;
 
   scanner.start(
     { facingMode: "environment" },
@@ -89,18 +85,7 @@ function initScanner() {
     },
     (text) => {
 
-      // 🔥 CLEAN PRN
-      let prn = text.replace(/\s/g, "");
-
-      // 🔥 DOUBLE READ CONFIRM
-      if (prn === lastScan) {
-        scanCount++;
-      } else {
-        lastScan = prn;
-        scanCount = 1;
-      }
-
-      if (scanCount < 2) return;
+      let prn = text.replace(/\s/g, ""); // clean only
 
       alert("PRN: " + prn);
 
@@ -116,53 +101,28 @@ function initScanner() {
 // -------- SUBMIT --------
 function submitFlow(prn) {
 
-  firebase.database().ref("locker/currentPRN").once("value")
-    .then((snapshot) => {
+  // 🔥 ALWAYS SAVE (no checking)
+  firebase.database().ref("locker").set({
+    currentPRN: prn
+  });
 
-      if (snapshot.exists() && snapshot.val() !== "none") {
-        alert("Locker already occupied ❌");
-        return;
-      }
+  // 🔥 OPEN LOCKER
+  firebase.database().ref("commands").set({
+    action: "open"
+  });
 
-      // store PRN
-      firebase.database().ref("locker").set({
-        currentPRN: prn
-      });
-
-      // open locker
-      firebase.database().ref("commands").set({
-        action: "open"
-      });
-
-      alert("Stored & Locker Opened ✅");
-    });
+  alert("Saved & Opened");
 }
 
 // -------- RETRIEVE --------
 function retrieveFlow(prn) {
 
-  firebase.database().ref("locker/currentPRN").once("value")
-    .then((snapshot) => {
+  // 🔥 JUST OPEN (NO CHECK)
+  firebase.database().ref("commands").set({
+    action: "open"
+  });
 
-      let storedPRN = snapshot.val();
-
-      if (storedPRN === prn) {
-
-        firebase.database().ref("commands").set({
-          action: "open"
-        });
-
-        // reset
-        firebase.database().ref("locker").set({
-          currentPRN: "none"
-        });
-
-        alert("Access Granted ✅");
-
-      } else {
-        alert("Wrong ID ❌");
-      }
-    });
+  alert("Opened");
 }
 
 </script>
