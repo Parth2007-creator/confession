@@ -1,65 +1,8 @@
-<script>
+<!DOCTYPE html>
+<html>
+<body>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
-  databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
-};
+<h1>WORKING ✅</h1>
 
-firebase.initializeApp(firebaseConfig);
-
-let mode = "";
-
-// -------- BUTTONS --------
-function startSubmit() {
-  mode = "submit";
-  startScanner();
-}
-
-function startRetrieve() {
-  mode = "retrieve";
-  startScanner();
-}
-
-// -------- SCANNER --------
-function startScanner() {
-
-  const scanner = new Html5Qrcode("reader");
-
-  scanner.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (text) => {
-
-      let prn = text.trim(); // 👈 QR gives PRN
-
-      alert("PRN: " + prn);
-
-      scanner.stop();
-
-      if (mode === "submit") submitFlow(prn);
-      else retrieveFlow(prn);
-    }
-  );
-}
-
-// -------- SUBMIT --------
-function submitFlow(prn) {
-
-  firebase.database().ref("commands").set({
-    action: "open"
-  });
-
-  alert("Locker opened for PRN: " + prn);
-}
-
-// -------- RETRIEVE --------
-function retrieveFlow(prn) {
-
-  firebase.database().ref("commands").set({
-    action: "open"
-  });
-
-  alert("Locker opened for PRN: " + prn);
-}
-
-</script>
+</body>
+</html>
