@@ -12,8 +12,9 @@
 
   <style>
     body {
-      text-align: center;
+      margin: 0;
       font-family: Arial;
+      text-align: center;
     }
 
     button {
@@ -23,9 +24,8 @@
     }
 
     #reader {
-      width: 90%;   /* 🔥 BIG SCANNER */
-      max-width: 500px;
-      margin: auto;
+      width: 100vw;
+      height: 100vh;
     }
   </style>
 </head>
@@ -41,6 +41,7 @@
 
 <script>
 
+// 🔥 PUT YOUR FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
   databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
@@ -65,30 +66,20 @@ function startRetrieve() {
 // -------- SCANNER --------
 function startScanner() {
 
-  if (scanner) {
-    scanner.stop().then(() => {
-      scanner.clear();
-      initScanner();
-    });
-  } else {
-    initScanner();
-  }
-}
-
-function initScanner() {
+  // hide buttons → full screen experience
+  document.body.innerHTML = '<div id="reader"></div>';
 
   scanner = new Html5Qrcode("reader");
 
   scanner.start(
     { facingMode: "environment" },
     {
-      fps: 5,
-      qrbox: { width: 300, height: 300 }, // 🔥 BIG BOX
+      fps: 10,
       formatsToSupport: [
         Html5QrcodeSupportedFormats.CODE_128,
         Html5QrcodeSupportedFormats.CODE_39,
         Html5QrcodeSupportedFormats.EAN_13
-      ] // 🔥 ONLY BARCODE (NO QR)
+      ] // 🔥 ONLY BARCODE
     },
     (text) => {
 
