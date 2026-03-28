@@ -1,8 +1,166 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <title>Smart Locker</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+  <!-- QR Scanner -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial;
+    }
+    button {
+      padding: 15px;
+      margin: 10px;
+      font-size: 18px;
+    }
+    #reader {
+      width: 300px;
+      margin: auto;
+    }
+  </style>
+</head>
+
 <body>
 
-<h1>WORKING ✅</h1>
+<h2>Smart Locker</h2>
+
+<button onclick="startSubmit()">Submit</button>
+<button onclick="startRetrieve()">Retrieve</button>
+
+<div id="reader"></div>
+
+<script>
+
+// 🔥 REPLACE WITH YOUR FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
+  databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+let mode = "";
+let scanner = null;
+
+// -------- BUTTONS --------
+function startSubmit() {
+  mode = "submit";
+  startScanner();
+}
+
+function startRetrieve() {
+  mode = "retrieve";
+  startScanner();
+}
+
+// -------- SCANNER --------
+function startScanner() {
+
+  if (scanner) {
+    scanner.stop().then(() => {
+      scanner.clear();
+      initScanner();
+    });
+  } else {
+    initScanner();
+  }
+}
+
+function initScanner() {
+
+  scanner = new Html5Qrcode("reader");
+
+  scanner.start(
+    { facingMode: "environment" },
+    {
+      fps: 10,
+      qrbox: { width: 250, height: 250 }
+    },
+    (text) => {
+
+      let prn = text.trim();
+
+      // 🔥 VALIDATION (only numbers)
+      if (!/^[0-9]+$/.test(prn)) {
+        alert("Invalid PRN ❌");
+        return;
+      }
+
+      alert("PRN: " + prn);
+
+      scanner.stop().then(() => {
+        scanner.clear();
+      });
+
+      if (mode === "submit") submitFlow(prn);
+      else retrieveFlow(prn);
+    },
+    (error) => {}
+  );
+}
+
+// -------- SUBMIT (STORE PRN) --------
+function submitFlow(prn) {
+
+  // Check if locker already occupied
+  firebase.database().ref("locker/currentPRN").once("value")
+    .then((snapshot) => {
+
+      if (snapshot.exists() && snapshot.val() !== "none") {
+        alert("Locker already occupied ❌");
+        return;
+      }
+
+      // Store PRN
+      firebase.database().ref("locker").set({
+        currentPRN: prn
+      });
+
+      // Open locker
+      firebase.database().ref("commands").set({
+        action: "open"
+      });
+
+      alert("Stored & Locker Opened ✅");
+    });
+}
+
+// -------- RETRIEVE (VERIFY PRN) --------
+function retrieveFlow(prn) {
+
+  firebase.database().ref("locker/currentPRN").once("value")
+    .then((snapshot) => {
+
+      let storedPRN = snapshot.val();
+
+      if (storedPRN === prn) {
+
+        // Open locker
+        firebase.database().ref("commands").set({
+          action: "open"
+        });
+
+        // Reset locker
+        firebase.database().ref("locker").set({
+          currentPRN: "none"
+        });
+
+        alert("Access Granted ✅");
+
+      } else {
+        alert("Wrong ID ❌");
+      }
+    });
+}
+
+</script>
 
 </body>
 </html>
