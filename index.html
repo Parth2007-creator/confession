@@ -1,126 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Smart Locker</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-  <!-- Scanner -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      text-align: center;
-    }
-
-    button {
-      padding: 15px;
-      margin: 10px;
-      font-size: 18px;
-    }
-
-    #reader {
-      width: 100vw;
-      height: 100vh;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusVault | QR Access</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
+    <nav class="navbar">
+        <div class="logo">CampusVault</div>
+        <ul class="nav-links">
+            <li><a href="#">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+    </nav>
 
-<h2>Smart Locker</h2>
+    <header class="hero">
+        <h1>Welcome to CampusVault</h1>
+        <p>Secure and seamless QR-based access for your campus environment.</p>
+        <button class="cta-button">Get Started</button>
+    </header>
 
-<button onclick="startSubmit()">Submit</button>
-<button onclick="startRetrieve()">Retrieve</button>
+    <section id="features" class="features">
+        <div class="card">
+            <h3>Fast Access</h3>
+            <p>Scan and go in seconds with optimized QR recognition.</p>
+        </div>
+        <div class="card">
+            <h3>Secure Data</h3>
+            <p>Your information is encrypted and managed with top-tier security.</p>
+        </div>
+    </section>
 
-<div id="reader"></div>
-
-<script>
-
-// 🔥 PUT YOUR FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
-  databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-let mode = "";
-let scanner = null;
-
-// -------- BUTTONS --------
-function startSubmit() {
-  mode = "submit";
-  startScanner();
-}
-
-function startRetrieve() {
-  mode = "retrieve";
-  startScanner();
-}
-
-// -------- SCANNER --------
-function startScanner() {
-
-  // hide buttons → full screen experience
-  document.body.innerHTML = '<div id="reader"></div>';
-
-  scanner = new Html5Qrcode("reader");
-
-  scanner.start(
-    { facingMode: "environment" },
-    {
-      fps: 10,
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.EAN_13
-      ] // 🔥 ONLY BARCODE
-    },
-    (text) => {
-
-      let prn = text.trim();
-
-      alert("PRN: " + prn);
-
-      scanner.stop().then(() => scanner.clear());
-
-      if (mode === "submit") submitFlow(prn);
-      else retrieveFlow(prn);
-    },
-    (error) => {}
-  );
-}
-
-// -------- SUBMIT --------
-function submitFlow(prn) {
-
-  firebase.database().ref("locker").set({
-    currentPRN: prn
-  });
-
-  firebase.database().ref("commands").set({
-    action: "open"
-  });
-
-  alert("Saved & Opened");
-}
-
-// -------- RETRIEVE --------
-function retrieveFlow(prn) {
-
-  firebase.database().ref("commands").set({
-    action: "open"
-  });
-
-  alert("Opened");
-}
-
-</script>
-
+    <footer class="footer">
+        <p>&copy; 2026 CampusVault. Built for efficiency.</p>
+    </footer>
 </body>
 </html>
