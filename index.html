@@ -1,111 +1,62 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Smart Locker</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-  <!-- QR Scanner -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <style>
-    body {
-      text-align: center;
-      font-family: Arial;
+<html lang="en">
+  <head>
+    <script type="module">
+      import { injectIntoGlobalHook } from &#34;/@react-refresh&#34;;
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () =&gt; {};
+window.$RefreshSig$ = () =&gt; (type) =&gt; type;
+    </script>
+    <script type="module" src="/@vite/client">
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      CampusHub Station
+    </title>
+    <meta name="description" content="Smart campus utility station - Lost &amp; Found and Waste Segregation Dashboard" />
+    <meta name="author" content="CampusHub" />
+    <meta property="og:title" content="CampusHub Station" />
+    <meta property="og:description" content="Smart campus utility station - Lost &amp; Found and Waste Segregation Dashboard" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-base.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@vibecodeapp" />
+    <meta name="twitter:image" content="/og-base.png" />
+    <script type="module">
+      import{createHotContext}from&#39;/@vite/client&#39;;const h=createHotContext(&#39;/@vibecode-hmr&#39;);
+window.addEventListener(&#39;message&#39;,e=&gt;{const d=e.data;
+if(d?.type===&#39;vibecode:override&#39;)h.send(&#39;vibecode:override&#39;,{path:d.path,content:d.content});
+else if(d?.type===&#39;vibecode:clear-override&#39;)h.send(&#39;vibecode:clear-override&#39;,{path:d.path});
+else if(d?.type===&#39;vibecode:clear-all-overrides&#39;)h.send(&#39;vibecode:clear-all-overrides&#39;,{});});
+    </script>
+    <script>
+      (function(){
+  var loaded=false;
+  var allowedOrigins=[&#39;https://vibecodeapp.com&#39;,&#39;https://www.vibecodeapp.com&#39;,&#39;https://vibecode.dev&#39;,&#39;http://www.vibecode.dev&#39;,&#39;http://localhost:3001&#39;];
+  var allowedSdkUrls=[&#39;https://images.composerapi.com/&#39;,&#39;https://api.vibecodeapp.com/&#39;];
+  window.addEventListener(&#39;message&#39;,function(e){
+    if(!allowedOrigins.includes(e.origin))return;
+    if(e.data?.type===&#39;vibecode:sdk:load&#39;&amp;&amp;!loaded){
+      if(!allowedSdkUrls.some(function(u){return e.data.url.startsWith(u)}))return;
+      loaded=true;
+      window.__VIBECODE_CONFIG__=e.data;
+      var s=document.createElement(&#39;script&#39;);
+      s.src=e.data.url;
+      s.onerror=function(){console.warn(&#39;[vibecode] SDK failed to load&#39;)};
+      document.head.appendChild(s);
     }
-    button {
-      padding: 15px;
-      margin: 10px;
-      font-size: 18px;
-    }
-  </style>
-</head>
-
-<body>
-
-<h2>Smart Locker</h2>
-
-<button onclick="startSubmit()">Submit</button>
-<button onclick="startRetrieve()">Retrieve</button>
-
-<div id="reader" style="width:300px; margin:auto;"></div>
-
-<script>
-
-// 🔥 REPLACE THIS WITH YOUR FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "AIzaSyDNXpPS52i6WlsCEP7eYZqQ6Jt0oieQjxI",
-  databaseURL: "https://campus-expert-default-rtdb.firebaseio.com/"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-let mode = "";
-
-// ---------------- BUTTONS ----------------
-function startSubmit() {
-  mode = "submit";
-  startScanner();
-}
-
-function startRetrieve() {
-  mode = "retrieve";
-  startScanner();
-}
-
-// ---------------- SCANNER ----------------
-function startScanner() {
-
-  const scanner = new Html5Qrcode("reader");
-
-  scanner.start(
-    { facingMode: "environment" },
-    { fps: 10 },
-    (text) => {
-
-      let data = text.split("|");
-
-      let name = data[0];
-      let prn = data[1];
-      let branch = data[2];
-
-      alert("Welcome " + name);
-
-      scanner.stop();
-
-      if (mode === "submit") {
-        submitFlow(name, prn);
-      } else {
-        retrieveFlow(name, prn);
-      }
-    }
-  );
-}
-
-// ---------------- SUBMIT ----------------
-function submitFlow(name, prn) {
-
-  // 🔥 SEND COMMAND TO ESP
-  firebase.database().ref("commands").set({
-    action: "open"
   });
-
-  alert("Locker Opened for " + name);
-}
-
-// ---------------- RETRIEVE ----------------
-function retrieveFlow(name, prn) {
-
-  firebase.database().ref("commands").set({
-    action: "open"
-  });
-
-  alert("Locker Opened for " + name);
-}
-
-</script>
-
-</body>
+  if(window.parent!==window){
+    window.parent.postMessage({type:&#39;vibecode:sdk:ready-for-config&#39;},&#39;*&#39;);
+  }
+})();
+    </script>
+  </head>
+  <body>
+    <div id="root">
+    </div>
+    <script type="module" src="/src/main.tsx">
+    </script>
+  </body>
 </html>
