@@ -1,146 +1,144 @@
-import { db } from '../firebase.js'; 
-import { doc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+// १. Firebase Imports (Module CDN वापरून)
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-console.log("scan.js loaded and ready!");
+// २. Firebase Config (तुझा डेटा)
+const firebaseConfig = {
+    apiKey: "AIzaSyC5ymgsIRCkNubgOXQr6K5RnEwg2DlJ-xQ",
+    authDomain: "smart-locker-924d4.firebaseapp.com",
+    projectId: "smart-locker-924d4",
+    storageBucket: "smart-locker-924d4.firebasestorage.app",
+    messagingSenderId: "627217512653",
+    appId: "1:627217512653:web:5f97e67320f04fd0f19184"
+};
 
-let scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-let currentMode = ''; 
-let scannedStudentData = "";
-let videoStream = null;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// १. Event Delegation: बटन्स डायनॅमिकली क्रिएट झाले तरी हे काम करेल
-document.addEventListener('click', function (e) {
-    
-    // STORE बटण क्लिक केल्यावर
-    if (e.target && (e.target.id === 'btn-store' || e.target.closest('#btn-store'))) {
-        console.log("Store mode activated");
-        currentMode = 'store';
-        resetUI(); // जुना डेटा किंवा कॅमेरा साफ करण्यासाठी
-        document.getElementById('reader').classList.remove('hidden');
-        scanner.render(onScanSuccess, onScanError);
-    }
+let mode = "";
+let scannedID = ""; // फक्त ID स्टोअर करण्यासाठी
+let streamReference = null;
 
-    // RETRIEVE बटण क्लिक केल्यावर
-    if (e.target && (e.target.id === 'btn-retrieve' || e.target.closest('#btn-retrieve'))) {
-        console.log("Retrieve mode activated");
-        currentMode = 'retrieve';
-        resetUI();
-        document.getElementById('reader').classList.remove('hidden');
-        scanner.render(onScanSuccess, onScanError);
-    }
+// ३. START SCANNER (बटन क्लिक झाल्यावर)
+window.start = function(type) {
+    mode = type;
+    document.body.innerHTML = '<h2>Scanning ID...</h2><div id="reader" style="width:100%"></div><button class="btn" onclick="location.reload()">Cancel</button>';
 
-    // फोटो काढण्यासाठी (TAKE PHOTO)
-    if (e.target && (e.target.id === 'btn-take-photo' || e.target.closest('#btn-take-photo'))) {
-        captureAndUpload();
-    }
-});
+    const html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-// २. स्कॅन यशस्वी झाल्यावर काय करायचे?
-function onScanSuccess(decodedText) {
-    console.log("Scanned ID Data:", decodedText);
-    scannedStudentData = decodedText;
-    
-    // स्कॅनर बंद करा
-    scanner.clear();
-    document.getElementById('reader').classList.add('hidden');
-    
-    if (currentMode === 'store') {
-        // जर स्टोअर मोड असेल तर वस्तूचा फोटो काढण्यासाठी कॅमेरा सुरू करा
-        startCamera();
-    } else {
-        // जर रिट्रीव्ह मोड असेल तर थेट सर्च करा
-        handleRetrieve(scannedStudentData);
-    }
+    html5QrCode.start({ facingMode: "environment" }, config, (text) => {
+        scannedID = text;
+        html5QrCode.stop().then(() => {
+            processID(text);
+        });
+    });
 }
 
-// ३. वस्तूचा फोटो घेण्यासाठी कॅमेरा सुरू करणे
-async function startCamera() {
-    const video = document.getElementById('video');
-    const photoSection = document.getElementById('photo-section');
-    
-    if (photoSection) photoSection.classList.remove('hidden');
-
-    try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        video.srcObject = videoStream;
-    } catch (err) {
-        alert("Camera error: " + err.message);
-    }
+// ४. PROCESS ID
+function processID(text) {
+    alert("ID Scanned: " + text);
+    if (mode === "submit") openCamera();
+    else retrieveFlow();
 }
 
-// ४. फोटो कॅप्चर करून Firebase मध्ये स्टोअर करणे
-async function captureAndUpload() {
-    const canvas = document.getElementById('canvas');
-    const video = document.getElementById('video');
-    
+// ५. CAMERA FOR PHOTO (Submit Mode)
+function openCamera() {
+    document.body.innerHTML = `
+        <h3>Take Item Photo</h3>
+        <video id="video" autoplay playsinline style="width:90%; border-radius:10px;"></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <br>
+        <button class="btn" id="captureBtn">📸 Capture & Next</button>
+    `;
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+            streamReference = stream;
+            document.getElementById("video").srcObject = stream;
+            document.getElementById("captureBtn").onclick = capture;
+        })
+        .catch(err => alert("Camera error: " + err));
+}
+
+// ६. CAPTURE & SHOW INPUT
+function capture() {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
     
-    // इमेज क्वालिटी थोडी कमी ठेवली आहे जेणेकरून अपलोड फास्ट होईल
-    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    const photoData = canvas.toDataURL('image/jpeg', 0.5); // फोटो डेटा
 
-    const docId = "ITEM_" + Date.now();
+    // कॅमेरा बंद करा
+    if(streamReference) streamReference.getTracks().forEach(t => t.stop());
+
+    document.body.innerHTML = `
+        <h3>Enter Item Name</h3>
+        <input id="itemName" placeholder="e.g. Wallet, Keys" style="padding:15px; width:80%; border-radius:10px; border:none;">
+        <br><br>
+        <button class="btn" id="finalSubmit">✅ Final Submit</button>
+    `;
+
+    document.getElementById("finalSubmit").onclick = () => submitToFirebase(photoData);
+}
+
+// ७. FIREBASE SUBMIT
+async function submitToFirebase(photo) {
+    const name = document.getElementById("itemName").value;
+    if(!name) return alert("Please enter item name");
+
     try {
+        const docId = "ITEM_" + Date.now();
         await setDoc(doc(db, 'lostAndFound', docId), {
-            studentDetails: scannedStudentData,
-            itemPhotoUrl: imageDataUrl,
+            studentID: scannedID,
+            itemName: name,
+            itemPhoto: photo,
             status: "available",
             stationId: "box_01",
-            storedAt: serverTimestamp()
+            timestamp: serverTimestamp()
         });
 
-        stopCamera();
-        alert("Item Stored Successfully!");
-        location.reload(); 
+        alert("Item Stored Successfully! Box 01 is Open.");
+        location.reload();
     } catch (e) {
-        alert("Firebase Error: " + e.message);
+        alert("Error: " + e.message);
     }
 }
 
-// ५. रिट्रीव्हल लॉजिक
-async function handleRetrieve(qrData) {
+// ८. RETRIEVE FLOW (Search in Firebase)
+async function retrieveFlow() {
+    document.body.innerHTML = "<h3>Searching for your items...</h3>";
+    
     const q = query(collection(db, 'lostAndFound'), 
-              where('studentDetails', '==', qrData), 
+              where('studentID', '==', scannedID), 
               where('status', '==', 'available'));
-    
+
     const querySnapshot = await getDocs(q);
-    
-    if (!querySnapshot.empty) {
-        const itemDoc = querySnapshot.docs[0];
-        
-        // बॉक्स अनलॉक करण्यासाठी सिग्नल (Firestore मधून)
-        await updateDoc(doc(db, 'stations', 'box_01'), {
-            unlockBox: true,
-            openCompartment: 1 
-        });
 
-        // स्टेटस अपडेट करा
-        await updateDoc(doc(db, 'lostAndFound', itemDoc.id), {
-            status: "claimed",
-            claimedAt: serverTimestamp()
-        });
-
-        alert("Match Found! Box Opening...");
+    if (querySnapshot.empty) {
+        alert("No items found for this ID.");
         location.reload();
     } else {
-        alert("No items found for this Student ID.");
-        location.reload();
+        const item = querySnapshot.docs[0];
+        document.body.innerHTML = `
+            <h3>Item Found: ${item.data().itemName}</h3>
+            <img src="${item.data().itemPhoto}" style="width:70%; border-radius:10px;">
+            <button class="btn" id="openBtn">🔓 Open Locker</button>
+        `;
+
+        document.getElementById("openBtn").onclick = async () => {
+            // ESP32 साठी कमांड पाठवणे
+            await updateDoc(doc(db, 'stations', 'box_01'), {
+                unlockBox: true,
+                openCompartment: 1
+            });
+            // स्टेटस बदलणे
+            await updateDoc(doc(db, 'lostAndFound', item.id), { status: "claimed" });
+            
+            alert("Locker Opening...");
+            location.reload();
+        };
     }
-}
-
-// मदतनीस फंक्शन्स (Helper Functions)
-function stopCamera() {
-    if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-    }
-}
-
-function resetUI() {
-    document.getElementById('photo-section')?.classList.add('hidden');
-    stopCamera();
-}
-
-function onScanError(err) {
-    // स्कॅन करताना येणारे छोटे एरर्स इग्नोर करा
 }
