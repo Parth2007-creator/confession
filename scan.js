@@ -1,271 +1,89 @@
-import { db, isConfigured } from './firebase.js';
-import { collection, addDoc, serverTimestamp, doc, setDoc, getDocs, query, where, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { db } from './firebase.js';
+import { 
+    doc, setDoc, updateDoc, serverTimestamp, collection, 
+    query, where, getDocs 
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-let stationId = null;
-let currentMode = null; // 'store' or 'retrieve'
-let scannedStudentId = null;
-let html5QrCode = null;
+// 1. Scanner Initialize (UI madhla 'reader' div vaprun)
+let scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+let currentMode = ''; 
+let scannedStudentData = "";
 
-const protectionModal = document.getElementById('protection-overlay');
-const btnStore = document.getElementById('btn-store');
-const btnRetrieve = document.getElementById('btn-retrieve');
-const scannerModal = document.getElementById('scanner-modal');
-const scannerPlaceholder = document.getElementById('scanner-placeholder');
-const scanningLine = document.getElementById('scanning-line');
-const btnCloseScanner = document.getElementById('btn-close-scanner');
-const scannerStatus = document.getElementById('scanner-status');
-const scannerSubtitle = document.getElementById('scanner-subtitle');
-
-const photoModal = document.getElementById('photo-capture-modal');
-const photoVideo = document.getElementById('photo-video');
-const photoCanvas = document.getElementById('photo-canvas');
-const btnTakePhoto = document.getElementById('btn-take-photo');
-const btnCancelPhoto = document.getElementById('btn-cancel-photo');
-
-const actionOverlay = document.getElementById('action-overlay');
-const actionIcon = document.getElementById('action-icon');
-const actionTitle = document.getElementById('action-title');
-
-let cameraStream = null;
-
-// Enforce Physical QR Scan Rule
-function checkStationId() {
-    const urlParams = new URLSearchParams(window.location.search);
-    stationId = urlParams.get('station');
-    if (!stationId) {
-        protectionModal.classList.remove('hidden');
-    } else {
-        protectionModal.classList.add('hidden');
-    }
-}
-
-function showAction(title, icon, animate = true) {
-    actionTitle.textContent = title;
-    actionIcon.textContent = icon;
-    if (animate) {
-        actionIcon.classList.add('animate-bounce');
-    } else {
-        actionIcon.classList.remove('animate-bounce');
-    }
-    actionOverlay.classList.remove('hidden');
-}
-
-function hideAction() {
-    actionOverlay.classList.add('hidden');
-}
-
-async function unlockHardwareBox() {
-    if (!isConfigured) {
-        console.warn("Simulating box unlock (Firebase inactive)");
-        return;
-    }
-    try {
-        const stationRef = doc(db, 'stations', stationId);
-        await setDoc(stationRef, {
-            unlockBox: true,
-            lastActivity: serverTimestamp()
-        }, { merge: true });
-    } catch (err) {
-        console.error("Error unlocking box:", err);
-    }
-}
-
-// Store & Retrieve Scanner Logic
-btnStore.addEventListener('click', () => {
+// 2. STORE BUTTON LOGIC
+document.getElementById('btn-store').onclick = () => {
     currentMode = 'store';
-    startScanner();
-});
+    document.getElementById('reader').classList.remove('hidden');
+    scanner.render(onScanSuccess);
+};
 
-btnRetrieve.addEventListener('click', () => {
+// 3. RETRIEVE BUTTON LOGIC
+document.getElementById('btn-retrieve').onclick = () => {
     currentMode = 'retrieve';
-    startScanner();
-});
+    document.getElementById('reader').classList.remove('hidden');
+    scanner.render(onScanSuccess);
+};
 
-btnCloseScanner.addEventListener('click', () => {
-    stopScanner();
-});
-
-function startScanner() {
-    scannerModal.style.transform = 'translateY(0)';
-    scannerPlaceholder.classList.add('hidden');
-    scanningLine.classList.remove('hidden');
-    btnCloseScanner.classList.remove('hidden');
+// 4. SCAN SUCCESS (Fakt QR vachne)
+function onScanSuccess(decodedText) {
+    scannedStudentData = decodedText; // QR madhla data ithe ala
+    scanner.clear();
+    document.getElementById('reader').classList.add('hidden');
     
-    scannerStatus.textContent = currentMode === 'store' ? 'Scan ID to Store' : 'Scan ID to Retrieve';
-    scannerSubtitle.textContent = 'Align your student ID QR code in the frame.';
-
-    html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText, decodedResult) => {
-            handleScanSuccess(decodedText);
-        },
-        (errorMessage) => {
-            // parse errors silently
-        }
-    ).catch((err) => {
-        console.error("Camera access failed", err);
-        alert("Camera access failed. Please ensure you are using HTTPS and have granted permissions.");
-        stopScanner();
-    });
-}
-
-function stopScanner() {
-    if (html5QrCode) {
-        html5QrCode.stop().then(() => {
-            scannerModal.style.transform = 'translateY(100%)';
-            scannerPlaceholder.classList.remove('hidden');
-            scanningLine.classList.add('hidden');
-        }).catch(err => console.error(err));
-    } else {
-        scannerModal.style.transform = 'translateY(100%)';
-    }
-}
-
-async function handleScanSuccess(studentId) {
-    stopScanner();
-    scannedStudentId = studentId;
-
     if (currentMode === 'store') {
-        openPhotoCapture();
-    } else if (currentMode === 'retrieve') {
-        await processRetrieveFlow();
-    }
-}
-
-// Store Flow: Photo Capture
-async function openPhotoCapture() {
-    photoModal.classList.remove('hidden');
-    photoCanvas.classList.add('hidden');
-    photoVideo.classList.remove('hidden');
-    btnTakePhoto.classList.remove('hidden');
-    
-    try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        photoVideo.srcObject = cameraStream;
-    } catch (err) {
-        console.error("Failed to get camera stream", err);
-        alert("Camera access failed.");
-        closePhotoCapture();
-    }
-}
-
-function closePhotoCapture() {
-    if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-    }
-    photoModal.classList.add('hidden');
-}
-
-btnCancelPhoto.addEventListener('click', closePhotoCapture);
-
-btnTakePhoto.addEventListener('click', async () => {
-    // Resize image drastically to fit inside Firestore limit (1MB max, usually we want ~30kb)
-    const MAX_SIZE = 300;
-    let width = photoVideo.videoWidth;
-    let height = photoVideo.videoHeight;
-    
-    if (width > height) {
-        if (width > MAX_SIZE) {
-            height *= MAX_SIZE / width;
-            width = MAX_SIZE;
-        }
+        // QR nantra photo section dakhva
+        document.getElementById('photo-section').classList.remove('hidden');
     } else {
-        if (height > MAX_SIZE) {
-            width *= MAX_SIZE / height;
-            height = MAX_SIZE;
-        }
-    }
-    
-    photoCanvas.width = width;
-    photoCanvas.height = height;
-    const ctx = photoCanvas.getContext('2d');
-    ctx.drawImage(photoVideo, 0, 0, width, height);
-    
-    photoVideo.classList.add('hidden');
-    photoCanvas.classList.remove('hidden');
-    btnTakePhoto.classList.add('hidden');
-    btnCancelPhoto.textContent = "Processing...";
-    
-    showAction('Storing Item...', 'cloud_upload');
-    
-    // Convert to heavily compressed base64 JPEG
-    const imageDataUrl = photoCanvas.toDataURL('image/jpeg', 0.6);
-    closePhotoCapture();
-    
-    try {
-        if (isConfigured) {
-            const docId = crypto.randomUUID();
-            // Save image DIRECTLY to Firestore as a base64 string (No Storage bucket needed!)
-            await setDoc(doc(db, 'lostAndFound', docId), {
-                studentEmailId: scannedStudentId,
-                itemPhotoUrl: imageDataUrl,
-                storedAt: serverTimestamp(),
-                retrievedAt: null,
-                claimedAt: null,
-                status: "stored",
-                stationId: stationId
-            });
-        }
-        
-        await unlockHardwareBox();
-        
-        showAction('Item Stored! Box Unlocked.', 'lock_open_right', false);
-        setTimeout(hideAction, 3000);
-        
-    } catch (err) {
-        console.error("Storage error:", err);
-        showAction('Error Storing Item', 'error', false);
-        setTimeout(hideAction, 3000);
-    }
-});
-
-// Retrieve Flow
-async function processRetrieveFlow() {
-    showAction('Checking Items...', 'search');
-    try {
-        if (!isConfigured) {
-            // Mock simulation
-            showAction('Mock: Box Unlocked.', 'lock_open_right', false);
-            setTimeout(hideAction, 3000);
-            return;
-        }
-
-        const q = query(
-            collection(db, 'lostAndFound'), 
-            where('studentEmailId', '==', scannedStudentId),
-            where('status', '==', 'stored')
-        );
-        const querySnapshot = await getDocs(q);
-        
-        if (querySnapshot.empty) {
-            showAction('No Items Found', 'sentiment_dissatisfied', false);
-            setTimeout(hideAction, 3000);
-            return;
-        }
-        
-        showAction('Unlocking Box...', 'lock_open_right');
-        
-        // Mark items as retrieved
-        for (const document of querySnapshot.docs) {
-            await updateDoc(doc(db, 'lostAndFound', document.id), {
-                status: 'retrieved',
-                retrievedAt: serverTimestamp()
-            });
-        }
-        
-        await unlockHardwareBox();
-        
-        showAction('Item Retrieved! Box Unlocked.', 'check_circle', false);
-        setTimeout(hideAction, 3000);
-        
-    } catch (err) {
-        console.error("Retrieve error:", err);
-        showAction('Error Retrieving', 'error', false);
-        setTimeout(hideAction, 3000);
+        // Direct database check kara
+        handleRetrieve(scannedStudentData);
     }
 }
 
-// Initial check
-checkStationId();
+// 5. PHOTO LOGIC (Submit dablyavar)
+document.getElementById('btn-take-photo').onclick = async () => {
+    const canvas = document.getElementById('canvas');
+    const video = document.getElementById('video');
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imageDataUrl = canvas.toDataURL('image/jpeg');
+
+    // Firebase madhe 'available' status sobat save kara
+    const docId = "ITEM_" + Date.now();
+    await setDoc(doc(db, 'lostAndFound', docId), {
+        studentDetails: scannedStudentData,
+        itemPhotoUrl: imageDataUrl,
+        status: "available",
+        stationId: "box_01",
+        storedAt: serverTimestamp()
+    });
+    
+    alert("Item Stored! Check Available section.");
+    location.reload(); // Page refresh kara
+};
+
+// 6. RETRIEVE LOGIC (Matching ID shodha)
+async function handleRetrieve(qrData) {
+    const q = query(collection(db, 'lostAndFound'), 
+              where('studentDetails', '==', qrData), 
+              where('status', '==', 'available'));
+    
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+        const itemDoc = querySnapshot.docs[0];
+        
+        // 1. ESP32 la signal dya
+        await updateDoc(doc(db, 'stations', 'box_01'), {
+            unlockBox: true,
+            openCompartment: 1 
+        });
+        
+        // 2. Status 'claimed' kara (Mhanje to 'Claimed' section madhe disel)
+        await updateDoc(doc(db, 'lostAndFound', itemDoc.id), {
+            status: "claimed",
+            claimedAt: serverTimestamp()
+        });
+        
+        alert("ID Matched! Box Opening...");
+    } else {
+        alert("No available items found for this ID.");
+    }
+}
