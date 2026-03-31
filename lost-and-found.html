@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>CampusHub | Lost &amp; Found Gallery</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-secondary-fixed": "#002022",
+            "secondary-container": "#82f1f8",
+            "primary-fixed": "#d5e3ff",
+            "on-tertiary": "#ffffff",
+            "on-primary": "#ffffff",
+            "tertiary": "#6d5e00",
+            "on-background": "#091f21",
+            "surface-variant": "#d0e7ea",
+            "primary": "#005eb1",
+            "secondary": "#00696e",
+            "outline": "#6d797a",
+            "primary-container": "#dae6ff",
+            "surface-container-highest": "#d0e7ea",
+            "outline-variant": "#bcc9c9",
+            "surface-tint": "#005eb1",
+            "surface": "#ebfdff",
+            "surface-container-low": "#e1f8fb",
+            "surface-container": "#dbf2f5",
+            "error": "#ba1a1a",
+            "on-surface-variant": "#3d494a",
+            "on-secondary-container": "#006e73",
+            "on-surface": "#091f21",
+            "background": "#ebfdff",
+            "surface-bright": "#ebfdff",
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "surface-container-high": "#d6ecef",
+            "tertiary-container": "#fee678",
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Inter"],
+            "label": ["Inter"],
+            "mono": ["JetBrains Mono"]
+          },
+          borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+  <style>
+    .neumorphic-flat {
+      background: #ffffff;
+      box-shadow: 20px 20px 60px #a4b9ce66, -20px -20px 60px #ffffff;
+    }
+    .neumorphic-inset {
+      background: #e1f8fb;
+      box-shadow: inset 8px 8px 16px #c9dee1, inset -8px -8px 16px #ffffff;
+    }
+    .neumorphic-pill-active {
+      background: linear-gradient(135deg, #89F7FE 0%, #66A6FF 100%);
+      box-shadow: 10px 10px 20px #a4b9ce44, -5px -5px 15px #ffffff;
+    }
+    .neumorphic-card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 25px 25px 70px #a4b9ce88, -20px -20px 60px #ffffff;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-background font-body text-on-surface selection:bg-secondary-container">
+
+  <!-- Sidebar Navigation -->
+  <aside class="fixed left-0 top-0 bottom-0 z-50 flex flex-col py-8 bg-cyan-50/60 backdrop-blur-xl rounded-r-[3rem] h-[972px] my-auto ml-4 w-72 shadow-[20px_20px_60px_#a4b9ce66,-20px_-20px_60px_#ffffff]">
+    <div class="px-8 mb-12">
+      <h1 class="text-2xl font-bold bg-gradient-to-br from-[#89F7FE] to-[#66A6FF] bg-clip-text text-transparent font-headline">CampusHub</h1>
+      <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-1">The Digital Sanctuary</p>
+    </div>
+    <nav class="flex-1 px-4 space-y-4">
+      <a class="flex items-center px-6 py-4 space-x-4 text-slate-500 hover:text-cyan-600 hover:translate-x-1 transition-all duration-300 rounded-full group" href="index.html">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="font-semibold">Dashboard</span>
+      </a>
+      <a class="flex items-center px-6 py-4 space-x-4 bg-gradient-to-br from-[#89F7FE] to-[#66A6FF] text-white rounded-full shadow-lg scale-95 transition-all active:shadow-inner" href="lost-and-found.html">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+        <span class="font-semibold">Lost &amp; Found</span>
+      </a>
+      <a class="flex items-center px-6 py-4 space-x-4 text-slate-500 hover:text-cyan-600 hover:translate-x-1 transition-all duration-300 rounded-full group" href="stats.html">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="font-semibold">Segregator Stats</span>
+      </a>
+      <a class="flex items-center px-6 py-4 space-x-4 text-slate-500 hover:text-cyan-600 hover:translate-x-1 transition-all duration-300 rounded-full group" href="#">
+        <span class="material-symbols-outlined">settings</span>
+        <span class="font-semibold">Settings</span>
+      </a>
+    </nav>
+    <div class="px-8 mt-auto">
+      <div class="flex items-center space-x-3 p-3 bg-surface-container rounded-2xl shadow-inner transition-all hover:scale-[1.02]">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#89F7FE] to-[#66A6FF] flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-sm">person</span>
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-xs font-bold truncate">Alex Chen</p>
+          <p class="text-[10px] text-on-surface-variant">Admin Member</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="ml-80 mr-8 pt-8 pb-16">
+    <!-- Top Header -->
+    <header class="sticky top-0 w-full z-40 flex justify-between items-center px-8 py-6 bg-[#ebfdff]/80 backdrop-blur-2xl">
+      <div>
+        <h2 class="text-3xl font-black text-[#091f21] font-headline tracking-tight">Lost &amp; Found</h2>
+        <div class="flex items-center mt-1 space-x-2">
+          <span class="flex h-2 w-2 rounded-full bg-cyan-400"></span>
+          <span class="text-xs font-mono text-cyan-600 uppercase font-bold tracking-widest">Live Updates</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-8">
+        <div class="neumorphic-inset px-6 py-3 rounded-full flex items-center w-80 focus-within:ring-2 focus-within:ring-cyan-200 transition-all">
+          <span class="material-symbols-outlined text-outline-variant mr-3">search</span>
+          <input id="search-input" class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-outline-variant font-medium" placeholder="Search items..." type="text"/>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button class="w-12 h-12 rounded-full flex items-center justify-center text-[#3d494a] hover:text-cyan-400 transition-colors neumorphic-flat">
+            <span class="material-symbols-outlined">notifications</span>
+          </button>
+          <button class="w-12 h-12 rounded-full flex items-center justify-center text-[#3d494a] hover:text-cyan-400 transition-colors neumorphic-flat">
+            <span class="material-symbols-outlined">account_circle</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Gallery Controls / Tabs -->
+    <section class="mt-8 px-8 flex justify-between items-end">
+      <div class="flex space-x-6">
+        <button id="tab-available" onclick="switchTab('available')" class="neumorphic-pill-active px-8 py-4 rounded-full text-white font-bold flex items-center space-x-3 transition-transform active:scale-95">
+          <span>Available Items</span>
+          <span id="count-available" class="font-mono bg-white/20 px-2 rounded text-xs">—</span>
+        </button>
+        <button id="tab-claimed" onclick="switchTab('claimed')" class="neumorphic-flat px-8 py-4 rounded-full text-on-surface-variant font-bold flex items-center space-x-3 hover:text-cyan-600 transition-all active:scale-95">
+          <span>Claimed Items</span>
+          <span id="count-claimed" class="font-mono bg-surface-container px-2 rounded text-xs">—</span>
+        </button>
+      </div>
+      <div class="flex items-center space-x-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+        <span>Sort by:</span>
+        <select id="sort-select" class="bg-transparent border-none focus:ring-0 font-bold text-cyan-600 cursor-pointer">
+          <option value="desc">Recent First</option>
+          <option value="asc">Oldest First</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Bento Grid Gallery -->
+    <section id="inventory-grid" class="mt-12 px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+      <!-- Loading state -->
+      <div class="col-span-full flex justify-center py-12">
+        <div class="flex items-center gap-3 text-outline">
+          <div class="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-sm font-medium">Loading items...</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Action Button -->
+  <button class="fixed bottom-10 right-10 w-16 h-16 rounded-full bg-gradient-to-br from-[#89F7FE] to-[#66A6FF] text-white shadow-[0_10px_30px_rgba(102,166,255,0.4)] flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-50">
+    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">contact_support</span>
+  </button>
+
+  <script>
+    let currentTab = 'available';
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const availBtn = document.getElementById('tab-available');
+      const claimedBtn = document.getElementById('tab-claimed');
+
+      if (tab === 'available') {
+        availBtn.className = 'neumorphic-pill-active px-8 py-4 rounded-full text-white font-bold flex items-center space-x-3 transition-transform active:scale-95';
+        claimedBtn.className = 'neumorphic-flat px-8 py-4 rounded-full text-on-surface-variant font-bold flex items-center space-x-3 hover:text-cyan-600 transition-all active:scale-95';
+      } else {
+        claimedBtn.className = 'neumorphic-pill-active px-8 py-4 rounded-full text-white font-bold flex items-center space-x-3 transition-transform active:scale-95';
+        availBtn.className = 'neumorphic-flat px-8 py-4 rounded-full text-on-surface-variant font-bold flex items-center space-x-3 hover:text-cyan-600 transition-all active:scale-95';
+      }
+
+      // Dispatch custom event so JS module can react
+      window.dispatchEvent(new CustomEvent('tabchange', { detail: { tab } }));
+    }
+  </script>
+
+  <script type="module" src="src/lost-and-found.js"></script>
+</body>
+</html>
